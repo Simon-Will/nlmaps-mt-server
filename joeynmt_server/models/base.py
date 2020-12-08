@@ -1,5 +1,5 @@
 from joeynmt_server.app import db
-from nlmapsweb.utils.helper import get_utc_now
+from joeynmt_server.utils.helper import get_utc_now
 
 
 class BaseModel(db.Model):

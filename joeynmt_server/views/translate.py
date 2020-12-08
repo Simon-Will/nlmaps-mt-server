@@ -8,19 +8,19 @@ MODELS = {}
 @current_app.route('/translate', methods=['POST'])
 def translate():
     data = request.json
-    config_file = data.get('model')
-    nl_query = data.get('nl_query')
+    config_basename = data.get('model')
+    nl = data.get('nl')
 
-    # TODO: Check config_file, nl_query and joey_dir
+    joey_dir = current_app.config.get('JOEY_DIR')
+    config_file = joey_dir / 'configs' / config_basename
 
-    if config_file in MODELS:
-        model = MODELS[config_file]
+    if config_basename in MODELS:
+        model = MODELS[config_basename]
     else:
-        joey_dir = current_app.config.get('JOEY_DIR')
         model = JoeyModel.from_config_file(config_file, joey_dir)
-        MODELS[config_file] = model
+        MODELS[config_basename] = model
 
-    lin = model.translate_single(nl_query)
+    lin = model.translate_single(nl)
     response = {'lin': lin}
 
     return jsonify(response)
