@@ -1,6 +1,6 @@
 from joeynmt_server.app import db
 from joeynmt_server.models.base import BaseModel
-from joeynmt_server.models.train_usage import TrainUsage
+from joeynmt_server.models.train_usages import TrainUsage
 
 
 class Feedback(BaseModel):

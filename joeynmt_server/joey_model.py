@@ -1,8 +1,10 @@
-import pathlib
+import os.path
 
-from torchtext.data import Dataset, Example, Field, TranslationDataset
+from torchtext.data import Dataset, Example, Field
+from torchtext.datasets import TranslationDataset
 
 from joeynmt.constants import BOS_TOKEN, EOS_TOKEN, PAD_TOKEN, UNK_TOKEN
+from joeynmt.batch import Batch
 from joeynmt.data import MonoDataset, token_batch_size_fn
 from joeynmt.helpers import (load_config, get_latest_checkpoint,
                              load_checkpoint)
@@ -13,30 +15,54 @@ from joeynmt.vocabulary import Vocabulary
 
 from joeynmt_server.utils.batching import make_dataset
 
+
+def _resolve_path(path, root):
+    if not os.path.isabs(path):
+        path = os.path.join(root, path)
+    return path
+
+
+def make_config_absolute(config, root):
+    section_to_keys = {
+        'data': ('train', 'train2', 'dev', 'dev2', 'test', 'src_vocab',
+                'trg_vocab'),
+        'training': ('model_dir', 'load_model'),
+    }
+    for section, keys in section_to_keys.items():
+        sec = config[section]
+        for key in keys:
+            if key in sec:
+                sec[key] = _resolve_path(sec[key], root)
+    return config
+
+
 class JoeyModel:
 
-    def __init__(self, config, model, src_field, trg_field, test_args):
+    def __init__(self, config, model, src_field, trg_field, test_args,
+            joey_dir):
         self.config = config
         self.model = model
         self.src_field = src_field
         self.trg_field = trg_field
         self.test_args = test_args
+        self.joey_dir = joey_dir
+
+        self._train_dataset = None
 
     @classmethod
     def from_config_file(cls, config_file, joey_dir, use_cuda=None):
-        config = load_config(config_file)
+        config = make_config_absolute(load_config(config_file), joey_dir)
         if use_cuda is not None:
             config['training']['use_cuda'] = use_cuda
 
-        model_dir = pathlib.Path(config['training']['model_dir'])
-        if not model_dir.is_absolute():
-            model_dir = pathlib.Path(joey_dir) / model_dir
+        model_dir = config['training']['model_dir']
 
-
-        src_vocab_file = config['data'].get('src_vocab',
-                                            model_dir / 'src_vocab.txt')
-        trg_vocab_file = config['data'].get('trg_vocab',
-                                            model_dir / 'trg_vocab.txt')
+        src_vocab_file = config['data'].get(
+            'src_vocab', os.path.join(model_dir, 'src_vocab.txt')
+        )
+        trg_vocab_file = config['data'].get(
+            'trg_vocab', os.path.join(model_dir, 'trg_vocab.txt')
+        )
         src_vocab = Vocabulary(file=src_vocab_file)
         trg_vocab = Vocabulary(file=trg_vocab_file)
 
@@ -82,26 +108,28 @@ class JoeyModel:
             model.cuda()
 
         return cls(config=config, model=model, src_field=src_field,
-                   trg_field=trg_field, test_args=test_args)
+                   trg_field=trg_field, test_args=test_args,
+                   joey_dir=joey_dir)
 
     @property
     def train_dataset(self):
-        if not self.train_dataset:
-            self.train_dataset = self._load_train_dataset()
-        return self.train_dataset
+        if not self._train_dataset:
+            self._train_dataset = self._load_train_dataset()
+        return self._train_dataset
 
     def get_batch_size_fn(self):
-        if self.config['train'].get('batch_type') == "token":
+        if self.config['training'].get('batch_type') == "token":
             return token_batch_size_fn
         return None
 
     def _load_train_dataset(self, path=None):
         if not path:
-            path = self.config.data['train']
+            path = self.config['data']['train']
+        path = _resolve_path(path, self.joey_dir)
 
-        src_lang = self.config.data['src']
-        trg_lang = self.config.data['trg']
-        max_sent_length = self.config.data['max_sent_length']
+        src_lang = self.config['data']['src']
+        trg_lang = self.config['data']['trg']
+        max_sent_length = self.config['data']['max_sent_length']
         dataset = TranslationDataset(
             path=path, exts=("." + src_lang, "." + trg_lang),
             fields=(self.src_field, self.trg_field),
@@ -150,13 +178,15 @@ class JoeyModel:
             dev_results = self._validate_on_data(dev_set)
 
         for i, batch in enumerate(batches):
+            batch = Batch(batch, self.model.pad_index,
+                          use_cuda=trainer.use_cuda)
             print('Training on batch: {}'.format(batch))
             trainer._train_step(batch)
             if (i + 1) % trainer.batch_multiplier == 0:
                 if trainer.clip_grad_fun:
                     trainer.clip_grad_fun(params=trainer.model.parameters())
                 trainer.optimizer.step()
-                if trainer.scheduler:
+                if trainer.scheduler and trainer.scheduler_step_at == 'step':
                     trainer.scheduler.step()
 
                 trainer.model.zero_grad()

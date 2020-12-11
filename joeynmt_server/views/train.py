@@ -40,7 +40,7 @@ def train():
     segment_2 = []
     smallest_usage_count = segment_1_threshold
     for piece in feedback:
-        usage_count = piece.get_usage_for_model(config_basename)
+        usage_count = piece.get_usage_count_for_model(config_basename)
         smallest_usage_count = min(smallest_usage_count, usage_count)
         if usage_count <= segment_1_threshold:
             segment_1.append(piece)
@@ -80,3 +80,5 @@ def train():
     train_iterator = merge_iterators(*iterators)
 
     model.train(train_iterator)
+
+    return jsonify({'success': True})

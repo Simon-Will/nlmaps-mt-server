@@ -49,8 +49,8 @@ class MyBucketIterator(BucketIterator):
 def merge_iterators(main_iterator, *rest_iterators, yield_list=False):
     batch_iterators = [iterator.iter_batches_as_lists()
                        for iterator in [main_iterator, *rest_iterators]]
-    for batches in zip(batch_iterators):
-        batch = itertools.chain.from_iterable(batches)
+    for batches in zip(*batch_iterators):
+        batch = list(itertools.chain.from_iterable(batches))
         if main_iterator.sort_within_batch:
             batch.sort(key=main_iterator.sort_key, reverse=True)
         if yield_list:
