@@ -10,5 +10,5 @@ def save_feedback():
     fb = Feedback(**data)
     db.session.add(fb)
     db.session.commit()
-    response = {'feedback_id': fb.id}
+    response = {'id': fb.id}
     return jsonify(response)

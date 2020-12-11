@@ -1,6 +1,7 @@
 from flask import current_app, jsonify, request
 
 from joeynmt_server.joey_model import JoeyModel
+from joeynmt_server.models import Parse
 
 MODELS = {}
 
@@ -13,14 +14,17 @@ def translate():
 
     joey_dir = current_app.config.get('JOEY_DIR')
     config_file = joey_dir / 'configs' / config_basename
+    use_cuda = current_app.config.get('USE_CUDA_TRANSLATE')
 
     if config_basename in MODELS:
         model = MODELS[config_basename]
     else:
-        model = JoeyModel.from_config_file(config_file, joey_dir)
+        model = JoeyModel.from_config_file(config_file, joey_dir,
+                                           use_cuda=use_cuda)
         MODELS[config_basename] = model
 
     lin = model.translate_single(nl)
-    response = {'lin': lin}
+    Parse.get_or_create(nl=nl, lin=lin, model=config_basename)
 
+    response = {'lin': lin}
     return jsonify(response)

@@ -11,3 +11,6 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(
 SQLALCHEMY_ECHO = False
 
 JOEY_DIR = Path('/home/students/will/ma/joeynmt')
+
+USE_CUDA_TRANSLATE = False
+USE_CUDA_TRAIN = False

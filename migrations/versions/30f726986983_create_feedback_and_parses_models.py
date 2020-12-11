@@ -37,7 +37,7 @@ def upgrade():
     sa.Column('lin', sa.Unicode(length=500), nullable=False),
     sa.Column('model', sa.Unicode(length=500), nullable=False),
     sa.PrimaryKeyConstraint('id'),
-    sa.UniqueConstraint('nl', 'model', name='unique_nl_model')
+    sa.UniqueConstraint('nl', 'lin', 'model', name='unique_nl_lin_model')
     )
     # ### end Alembic commands ###
 
