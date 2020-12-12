@@ -42,7 +42,7 @@ class MyBucketIterator(BucketIterator):
                         minibatch.sort(key=self.sort_key, reverse=True)
                 yield minibatch
             if not self.repeat or (
-                    self.max_epochs and self.max_epochs >= self.epoch):
+                    self.max_epochs and self.epoch >= self.max_epochs):
                 return
 
 
