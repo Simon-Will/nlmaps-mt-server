@@ -24,7 +24,7 @@ def translate():
         MODELS[config_basename] = model
 
     lin = model.translate_single(nl)
-    Parse.get_or_create(nl=nl, lin=lin, model=config_basename)
+    Parse.get_or_create(nl=nl, model=config_basename, lin=lin)
 
     response = {'lin': lin}
     return jsonify(response)

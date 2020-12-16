@@ -1,3 +1,5 @@
+import itertools
+
 from flask import current_app, jsonify, request
 
 from joeynmt_server.joey_model import JoeyModel
@@ -80,5 +82,10 @@ def train():
     train_iterator = merge_iterators(*iterators)
 
     model.train(train_iterator)
+
+    nl_queries = [piece.nl for piece in itertools.chain(segment_1, segment_2)]
+    lin_queries = model.translate(nl_queries)
+    for nl, lin in zip(nl_queries, lin_queries):
+        Parse.get_or_create(nl=nl, model=config_basename, lin=lin)
 
     return jsonify({'success': True})

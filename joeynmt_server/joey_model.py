@@ -180,7 +180,7 @@ class JoeyModel:
         for i, batch in enumerate(batches):
             batch = Batch(batch, self.model.pad_index,
                           use_cuda=trainer.use_cuda)
-            print('Training on batch: {}'.format(batch))
+            print('Training on batch of size {}.'.format(batch.nseqs))
             trainer._train_step(batch)
             if (i + 1) % trainer.batch_multiplier == 0:
                 if trainer.clip_grad_fun:
