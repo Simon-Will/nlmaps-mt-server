@@ -23,8 +23,14 @@ def translate():
                                            use_cuda=use_cuda)
         MODELS[config_basename] = model
 
-    lin = model.translate_single(nl)
-    Parse.get_or_create(nl=nl, model=config_basename, lin=lin)
+    if isinstance(nl, str):
+        lin = model.translate_single(nl)
+        Parse.get_or_create(nl=nl, model=config_basename, lin=lin)
+    elif isinstance(nl, list):
+        lin = model.translate(nl)
+        for single_nl, single_lin in zip(nl, lin):
+            Parse.get_or_create(nl=single_nl, model=config_basename,
+                                lin=single_lin)
 
     response = {'lin': lin}
     return jsonify(response)
