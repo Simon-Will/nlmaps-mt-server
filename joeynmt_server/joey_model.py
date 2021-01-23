@@ -178,10 +178,11 @@ class JoeyModel:
         return hypotheses[0]
 
     def train(self, batches, dev_set=None, batch_callback=None):
-        # Shorter name
-        trainer = self.train_manager
         logging.info('Training model {}.'
                      .format(self.config['training']['model_dir']))
+
+        # Shorter name
+        trainer = self.train_manager
 
         if dev_set:
             dev_results = self._validate_on_data(dev_set)
