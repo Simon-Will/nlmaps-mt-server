@@ -1,3 +1,4 @@
+import logging
 import os.path
 
 from torchtext.data import Dataset, Example, Field
@@ -13,7 +14,7 @@ from joeynmt.prediction import parse_test_args, validate_on_data
 from joeynmt.training import TrainManager
 from joeynmt.vocabulary import Vocabulary
 
-from joeynmt_server.utils.batching import make_dataset
+from joeynmt_server.utils.batching import ID_FIELD, make_dataset
 
 
 def _resolve_path(path, root):
@@ -132,10 +133,12 @@ class JoeyModel:
         max_sent_length = self.config['data']['max_sent_length']
         dataset = TranslationDataset(
             path=path, exts=("." + src_lang, "." + trg_lang),
-            fields=(self.src_field, self.trg_field),
+            fields=(self.src_field, self.trg_field, ID_FIELD),
             filter_pred= lambda x: len(vars(x)['src']) <= max_sent_length
             and len(vars(x)['trg']) <= max_sent_length
         )
+        for example in dataset:
+            setattr(example, 'id', -1)
         return dataset
 
     def _validate_on_data(self, dataset, **kwargs):
@@ -171,16 +174,20 @@ class JoeyModel:
         hypotheses = self.translate([sentence])
         return hypotheses[0]
 
-    def train(self, batches, dev_set=None):
+    def train(self, batches, dev_set=None, batch_callback=None):
         trainer = TrainManager(model=self.model, config=self.config)
+        logging.info('Training model {}.'
+                     .format(self.config['training']['model_dir']))
 
         if dev_set:
             dev_results = self._validate_on_data(dev_set)
 
         for i, batch in enumerate(batches):
-            batch = Batch(batch, self.model.pad_index,
+            logging.info('Training on batch {}.'.format(i + 1))
+            logging.info('IDs in batch: {}'.format(batch.id))
+            joey_batch = Batch(batch, self.model.pad_index,
                           use_cuda=trainer.use_cuda)
-            trainer._train_step(batch)
+            trainer._train_step(joey_batch)
             if (i + 1) % trainer.batch_multiplier == 0:
                 if trainer.clip_grad_fun:
                     trainer.clip_grad_fun(params=trainer.model.parameters())
@@ -190,6 +197,10 @@ class JoeyModel:
 
                 trainer.model.zero_grad()
                 trainer.stats.steps += 1
+            if batch_callback:
+                batch_callback(batch)
+        logging.info('Finished training after {} batches'
+                     .format(i + 1))
 
         trainer._save_checkpoint()
 

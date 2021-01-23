@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import socket
 
 DEBUG = False
 
@@ -12,5 +13,5 @@ SQLALCHEMY_ECHO = False
 
 JOEY_DIR = Path('/home/students/will/ma/joeynmt')
 
-USE_CUDA_TRANSLATE = False
-USE_CUDA_TRAIN = False
+USE_CUDA_TRANSLATE = True
+USE_CUDA_TRAIN = 'gpu' in socket.gethostname()
