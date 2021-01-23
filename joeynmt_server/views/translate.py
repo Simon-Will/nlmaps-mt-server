@@ -25,12 +25,12 @@ def translate():
 
     if isinstance(nl, str):
         lin = model.translate_single(nl)
-        Parse.get_or_create(nl=nl, model=config_basename, lin=lin)
+        Parse.ensure(nl=nl, model=config_basename, lin=lin)
     elif isinstance(nl, list):
         lin = model.translate(nl)
         for single_nl, single_lin in zip(nl, lin):
-            Parse.get_or_create(nl=single_nl, model=config_basename,
-                                lin=single_lin)
+            Parse.ensure(nl=single_nl, model=config_basename,
+                         lin=single_lin)
 
     response = {'lin': lin}
     return jsonify(response)

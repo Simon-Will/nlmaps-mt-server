@@ -19,11 +19,16 @@ logging.config.dictConfig({
             'class': 'logging.StreamHandler',
             'stream': sys.stdout,
             'formatter': 'default'
-        }
+        },
+        'logfile': {
+            'class': 'logging.FileHandler',
+            'filename': '/home/students/will/ma/joeynmt-server/server.log',
+            'formatter': 'default'
+        },
     },
     'root': {
         'level': 'INFO',
-        'handlers': []
+        'handlers': ['stdout', 'logfile']
     }
 })
 

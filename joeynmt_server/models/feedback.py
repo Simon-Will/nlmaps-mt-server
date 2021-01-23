@@ -23,7 +23,8 @@ class Feedback(BaseModel):
         nullable=True,
     )
 
-    train_usages = db.relationship('TrainUsage', back_populates='feedback')
+    train_usages = db.relationship('TrainUsage', back_populates='feedback',
+                                   cascade='all, delete-orphan')
 
     def get_usage_for_model(self, model):
         usages = [usage for usage in self.train_usages if usage.model == model]

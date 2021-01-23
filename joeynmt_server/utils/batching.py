@@ -1,13 +1,20 @@
 import itertools
-from torchtext.data import Batch, BucketIterator, Dataset, Example
+
+from torchtext.data import Batch, BucketIterator, Dataset, Example, Field
 
 
-def make_dataset(src, src_field, trg_field=None, trg=None):
+ID_FIELD = Field(sequential=False, use_vocab=False, batch_first=True)
+
+
+def make_dataset(src, src_field, trg_field=None, trg=None, ids=None):
     fields = [('src', src_field)]
     data = [src]
     if trg and trg_field:
         fields.append(('trg', trg_field))
         data.append(trg)
+    if ids:
+        fields.append(('id', ID_FIELD))
+        data.append(ids)
 
     examples = [Example.fromlist(sentences, fields) for sentences in zip(*data)]
     dataset = Dataset(examples, fields)
