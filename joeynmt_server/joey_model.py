@@ -144,6 +144,9 @@ class JoeyModel:
             setattr(example, 'id', -1)
         return dataset
 
+    def get_config_dataset(self, name):
+        return self._load_train_dataset(self.config['data'][name])
+
     def _validate_on_data(self, dataset, **kwargs):
         valid_kwargs = {k: v for k, v in self.test_args.items()
                         if k not in ['decoding_description', 'tokenizer_info']}
@@ -183,6 +186,16 @@ class JoeyModel:
 
         # Shorter name
         trainer = self.train_manager
+
+        if dev_set == 'dev2':
+            if 'dev2' in self.config['data']:
+                logging.info('Using dev2 as dev set')
+                dev_set = self.get_config_dataset('dev2')
+            else:
+                dev_set = 'dev'
+        if dev_set == 'dev':
+            logging.info('Using dev as dev set')
+            dev_set = self.get_config_dataset('dev')
 
         if dev_set:
             dev_results = self._validate_on_data(dev_set)

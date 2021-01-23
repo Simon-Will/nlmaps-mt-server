@@ -93,7 +93,8 @@ def train(config_basename, smallest_usage_count, segment_1, segment_2):
 
         db.session.commit()
 
-    model.train(train_iterator, batch_callback=increment_train_usages)
+    model.train(train_iterator, dev_set='dev2',
+                batch_callback=increment_train_usages)
 
     return model
 
