@@ -38,10 +38,11 @@ def make_config_absolute(config, root):
 
 class JoeyModel:
 
-    def __init__(self, config, model, src_field, trg_field, test_args,
-            joey_dir):
+    def __init__(self, config, model, train_manager, src_field, trg_field,
+                 test_args, joey_dir):
         self.config = config
         self.model = model
+        self.train_manager = train_manager
         self.src_field = src_field
         self.trg_field = trg_field
         self.test_args = test_args
@@ -97,19 +98,21 @@ class JoeyModel:
             'tokenizer_info': tokenizer_info,
         }
 
-        ckpt = get_latest_checkpoint(model_dir)
-        model_checkpoint = load_checkpoint(ckpt,
-                                           use_cuda=test_args['use_cuda'])
         model = build_model(config['model'], src_vocab=src_vocab,
                             trg_vocab=trg_vocab)
-        model.load_state_dict(model_checkpoint['model_state'])
+        ckpt = get_latest_checkpoint(model_dir)
+        config['training']['load_model'] = ckpt
+        config['training']['reset_best_ckpt'] = False
+        config['training']['reset_scheduler'] = True
+        config['training']['reset_optimizer'] = True
+        train_manager = TrainManager(model=model, config=config)
 
-        if test_args['use_cuda']:
-            model.cuda()
+        #model_checkpoint = load_checkpoint(ckpt, use_cuda=test_args['use_cuda'])
+        #model.load_state_dict(model_checkpoint['model_state'])
 
-        return cls(config=config, model=model, src_field=src_field,
-                   trg_field=trg_field, test_args=test_args,
-                   joey_dir=joey_dir)
+        return cls(config=config, model=model, train_manager=train_manager,
+                   src_field=src_field, trg_field=trg_field,
+                   test_args=test_args, joey_dir=joey_dir)
 
     @property
     def train_dataset(self):
@@ -172,7 +175,8 @@ class JoeyModel:
         return hypotheses[0]
 
     def train(self, batches, dev_set=None):
-        trainer = TrainManager(model=self.model, config=self.config)
+        # Shorter name
+        trainer = self.train_manager
 
         if dev_set:
             dev_results = self._validate_on_data(dev_set)
