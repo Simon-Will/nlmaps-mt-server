@@ -15,3 +15,5 @@ JOEY_DIR = Path('/home/students/will/ma/joeynmt')
 
 USE_CUDA_TRANSLATE = True
 USE_CUDA_TRAIN = 'gpu' in socket.gethostname()
+
+TRAIN_AFTER_FEEDBACK = False
