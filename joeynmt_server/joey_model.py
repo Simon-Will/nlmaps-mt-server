@@ -88,7 +88,8 @@ class JoeyModel:
         (batch_size, batch_type, use_cuda, n_gpu, level, eval_metric,
          max_output_length, beam_size, beam_alpha, postprocess,
          bpe_type, sacrebleu, decoding_description,
-         tokenizer_info) = parse_test_args(config, mode='translate')
+         tokenizer_info, tag_dict_file) = parse_test_args(config,
+                                                          mode='translate')
         test_args = {
             'batch_size': batch_size, 'batch_type': batch_type,
             'use_cuda': use_cuda, 'n_gpu': n_gpu, 'level': level,
@@ -96,7 +97,7 @@ class JoeyModel:
             'beam_size': beam_size, 'beam_alpha': beam_alpha,
             'postprocess': postprocess, 'bpe_type': bpe_type,
             'sacrebleu': sacrebleu, 'decoding_description': decoding_description,
-            'tokenizer_info': tokenizer_info,
+            'tokenizer_info': tokenizer_info, 'tag_dict_file': tag_dict_file
         }
 
         model = build_model(config['model'], src_vocab=src_vocab,
@@ -149,7 +150,8 @@ class JoeyModel:
 
     def _validate_on_data(self, dataset, **kwargs):
         valid_kwargs = {k: v for k, v in self.test_args.items()
-                        if k not in ['decoding_description', 'tokenizer_info']}
+                        if k not in ['decoding_description', 'tokenizer_info',
+                                     'tag_dict_file']}
         valid_kwargs['eval_metric'] = ''
         valid_kwargs['compute_loss'] = False
         valid_kwargs['data'] = dataset
