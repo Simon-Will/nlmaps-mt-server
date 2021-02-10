@@ -207,7 +207,7 @@ class JoeyModel:
             logging.info('Training on batch {}.'.format(i + 1))
             logging.info('IDs in batch: {}'.format(batch.id))
             joey_batch = Batch(batch, self.model.pad_index,
-                          use_cuda=trainer.use_cuda)
+                               use_cuda=trainer.use_cuda)
             trainer._train_step(joey_batch)
             if (i + 1) % trainer.batch_multiplier == 0:
                 if trainer.clip_grad_fun:
