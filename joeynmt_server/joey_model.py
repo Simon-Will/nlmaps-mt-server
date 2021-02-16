@@ -122,6 +122,11 @@ class JoeyModel:
             self._train_dataset = self._load_train_dataset()
         return self._train_dataset
 
+    def is_still_latest(self):
+        train_config = self.config['training']
+        latest_checkpoint = get_latest_checkpoint(train_config['model_dir'])
+        return latest_checkpoint == train_config['load_model']
+
     def get_batch_size_fn(self):
         if self.config['training'].get('batch_type') == "token":
             return token_batch_size_fn
