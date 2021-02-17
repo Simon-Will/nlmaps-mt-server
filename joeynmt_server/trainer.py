@@ -30,8 +30,8 @@ def make_dataset_from_feedback(feedback, model):
 def train(config_basename, smallest_usage_count, segment_1, segment_2):
     segment_1_threshold = 5
     segment_1_batch_size = 5
-    segment_2_batch_size = 10
-    segment_3_batch_size = 5
+    segment_2_batch_size = 5
+    segment_3_batch_size = 10
 
     joey_dir = current_app.config.get('JOEY_DIR')
     config_file = joey_dir / 'configs' / config_basename
@@ -106,6 +106,10 @@ def sort_feedback(config_basename):
     segment_2 = []
     smallest_usage_count = None
     for piece in feedback:
+        if piece.id % 5 == 0:
+            # Use every fifth piece of feedback for testing.
+            continue
+
         usage_count = piece.get_usage_count_for_model(config_basename)
         if smallest_usage_count is None:
             smallest_usage_count = usage_count
@@ -136,8 +140,6 @@ def acquire_train_lock():
 
 
 def train_n_rounds(config_basename, min_rounds=10):
-    # TODO: Exclude some feedback pieces from training
-    # to have unseen data for testing later.
     lock = acquire_train_lock()
     if not lock:
         logging.debug('Did not acquire lock.')
@@ -167,8 +169,9 @@ def train_n_rounds(config_basename, min_rounds=10):
 
     if model:
         try:
-            nl_queries = [piece.nl
-                          for piece in itertools.chain(segment_1, segment_2)]
+            # TODO: Split off reevaluation into a CPU thread.
+            nl_queries = [piece.nl for piece in segment_1]
+                          #for piece in itertools.chain(segment_1, segment_2)]
             logging.info('Reevaluating model {} on {} pieces of feedback.'
                 .format(config_basename, len(nl_queries)))
             lin_queries = model.translate(nl_queries)
