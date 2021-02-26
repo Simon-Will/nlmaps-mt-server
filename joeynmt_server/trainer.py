@@ -106,7 +106,7 @@ def sort_feedback(config_basename):
     segment_2 = []
     smallest_usage_count = None
     for piece in feedback:
-        if piece.id % 5 == 0:
+        if piece.id % 5 == 0 or not piece.correct_lin:
             # Use every fifth piece of feedback for testing.
             continue
 

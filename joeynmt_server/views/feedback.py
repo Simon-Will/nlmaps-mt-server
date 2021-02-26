@@ -37,7 +37,8 @@ def save_feedback():
 
     response = fb.json_ready_dict()
 
-    if current_app.config.get('TRAIN_AFTER_FEEDBACK') and config_basename:
+    if (current_app.config.get('TRAIN_AFTER_FEEDBACK') and config_basename
+            and fb.correct_lin):
         thread = threading.Thread(target=train_in_thread)
         thread.start()
         time.sleep(0.1)
