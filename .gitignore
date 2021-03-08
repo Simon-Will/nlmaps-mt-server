@@ -3,6 +3,8 @@ venv
 joeynmt_server.db
 tmp/
 *.swp
+assets
+slurm-*.out
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python

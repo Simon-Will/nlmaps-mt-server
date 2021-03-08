@@ -1,17 +1,17 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=joeynmt-server
-#SBATCH --partition=students
-#SBATCH --gres=gpu:1
+#SBATCH --partition=compute
+#SBATCH --nodelist=node40
 #SBATCH --nodes=1
-#SBATCH --mem=4GB
-#SBATCH --time=4:00:00
+#SBATCH --mem=5GB
+#SBATCH --time=3-00:00:00
 
 THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$THIS_DIR"
 
 PORT=5050
 CLUSTER_MAIN_NODE=node00
-export FLASK_APP=application:app
+export FLASK_APP=joeynmt_server.fullapp:app
 export FLASK_DEBUG=true
 
 if [ -z "$CONDA_DEFAULT_ENV" ]; then

@@ -33,7 +33,7 @@ printenv
 echo '===================='
 
 start_uwsgi() {
-    "$UWSGI_EXECUTABLE" "$NLMAPSWEB_REPO/deploy/uwsgi.ini"
+    "$UWSGI_EXECUTABLE" "$JOEYNMT_SERVER_REPO/deploy/uwsgi.ini"
 }
 
 if [ -f "$PID_FILE" ]; then
