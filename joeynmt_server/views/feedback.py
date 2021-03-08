@@ -162,7 +162,6 @@ def get_feedback():
 
 
 @current_app.route('/feedback_users', methods=['POST'])
-def feedback_users:
-    data = request.json
+def feedback_users():
     user_ids = list({fb.user_id for fb in Feedback.query.all() if fb.user_id})
     return jsonify(user_ids)
