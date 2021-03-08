@@ -159,3 +159,10 @@ def get_feedback():
         return jsonify({'error': 'Forbidden'}), 403
 
     return jsonify(feedback.json_ready_dict())
+
+
+@current_app.route('/feedback_users', methods=['POST'])
+def feedback_users:
+    data = request.json
+    user_ids = list({fb.user_id for fb in Feedback.query.all() if fb.user_id})
+    return jsonify(user_ids)
