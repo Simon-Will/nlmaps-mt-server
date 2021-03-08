@@ -12,5 +12,4 @@ while true; do
     partition=$(scontrol show job "$jid" | sed -n 's/^ *Partition=\([^ ]\+\).*$/\1/p')
     nodelist=$(scontrol show job "$jid" | sed -n 's/^ *NodeList=\([^ ]\+\).*$/\1/p')
     srun -p "$partition" -w "$nodelist" pkill -INT -u "$USER" uwsgi
-    srun -p "$partition" -w "$nodelist" pkill -INT -u "$USER" uwsgi
 done
