@@ -1,10 +1,14 @@
 import logging.config
+import os
 from pathlib import Path
 import sys
 
 DEBUG = True
 
-ASSETS_DIR = Path('/home/students/will/ma/joeynmt-server/dev-assets')
+if 'ASSETS' in os.environ:
+    ASSETS_DIR = Path(os.environ['ASSETS'])
+else:
+    ASSETS_DIR = Path('/home/students/will/ma/joeynmt-server/dev-assets')
 
 SECRETS_INI = (ASSETS_DIR / 'nlmapsweb.ini').resolve()
 SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(
