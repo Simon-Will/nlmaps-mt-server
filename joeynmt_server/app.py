@@ -1,4 +1,5 @@
 import os
+import sys
 
 from flask import Flask
 from flask_migrate import Migrate
@@ -20,16 +21,21 @@ def create_app() -> Flask:
 
 
 def config_app(app: Flask) -> Flask:
-    app.logger.info('Starting configuration of Flask-App.')
+    app.logger.info('Start loading config.')
     app.logger.info('Flask App configured.')
-    load_default_config_file(app=app)
-    app.logger.debug(f'{app.config}')
 
-
-def load_default_config_file(app: Flask) -> None:
     app.logger.info('Loading default configuration.')
-    app.config.from_object('config.default')
-    app.logger.info('Loaded config defaults for all environments.')
+    app.config.from_object('joeynmt_server.config.default')
+    env = os.environ.get('FLASK_ENV')
+    if env:
+        try:
+            app.logger.info('Loading {} configuration.'.format(env))
+            app.config.from_object('joeynmt_server.config.' + env.lower())
+        except ImportError:
+            app.logger.error('Could not load {} configuration.'.format(env))
+            sys.exit(1)
+
+    app.logger.info('Config loaded.')
     app.logger.debug(f'{app.config}')
 
 

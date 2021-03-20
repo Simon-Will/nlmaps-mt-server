@@ -8,11 +8,11 @@
 
 PORT=5050
 CLUSTER_MAIN_NODE=node00
-export FLASK_APP=application:app
+export FLASK_APP=joeynmt_server.fullapp:app
+export FLASK_ENV=production
 export FLASK_DEBUG=true
 export JOEYNMT_SERVER_REPO="$HOME/ma/joeynmt-server"
 export JOEYNMT_SERVER_PORT="$PORT"
-export FLASK_ENV=production
 export ASSETS="$JOEYNMT_SERVER_REPO/assets"
 
 if [ -z "$CONDA_DEFAULT_ENV" ]; then

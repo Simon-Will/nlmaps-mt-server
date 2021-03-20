@@ -9,9 +9,10 @@
 THIS_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 cd "$THIS_DIR"
 
-PORT=5050
+PORT=5051
 CLUSTER_MAIN_NODE=node00
 export FLASK_APP=joeynmt_server.fullapp:app
+export FLASK_ENV=development
 export FLASK_DEBUG=true
 
 if [ -z "$CONDA_DEFAULT_ENV" ]; then
