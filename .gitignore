@@ -4,7 +4,10 @@ joeynmt_server.db
 tmp/
 *.swp
 assets
+prod-assets
+dev-assets
 slurm-*.out
+server.log
 
 # Created by https://www.toptal.com/developers/gitignore/api/python
 # Edit at https://www.toptal.com/developers/gitignore?templates=python
