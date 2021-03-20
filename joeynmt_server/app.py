@@ -21,15 +21,10 @@ def create_app() -> Flask:
 
 
 def config_app(app: Flask) -> Flask:
-    app.logger.info('Start loading config.')
-    app.logger.info('Flask App configured.')
-
-    app.logger.info('Loading default configuration.')
     app.config.from_object('joeynmt_server.config.default')
     env = os.environ.get('FLASK_ENV')
     if env:
         try:
-            app.logger.info('Loading {} configuration.'.format(env))
             app.config.from_object('joeynmt_server.config.' + env.lower())
         except ImportError:
             app.logger.error('Could not load {} configuration.'.format(env))
