@@ -151,13 +151,10 @@ def train_n_rounds(config_basename, min_rounds=10):
         return
 
     model = None
-    dev_set = None
     try:
         (smallest_usage_count, train1, train2, dev, _
          ) = get_feedback_segments(config_basename)
         nl_queries_to_reevaluate = {piece.nl for piece in train1}
-        if dev:
-            dev_set = make_dataset_from_feedback(dev, model)
         logging.info('Training with {} feedback pieces in segment 1'
                      ' and {} pieces in segment 2.'
                      .format(len(train1), len(train2)))
@@ -168,21 +165,24 @@ def train_n_rounds(config_basename, min_rounds=10):
             model = train(config_basename, smallest_usage_count, train1,
                           train2)
 
-            if dev_set:
-                logging.debug('Validating on {} feedback pieces.'
+            if dev:
+                dev_set = make_dataset_from_feedback(dev, model)
+                logging.info('Validating on {} feedback pieces.'
                               .format(len(dev_set)))
                 results = model.validate(dev_set)
                 correct = results['score']
                 total = len(dev_set)
-                EvaluationResult(label='changing_dev', correct=correct,
-                                 total=total)
+                logging.info('Got validation result: {}/{} = {}'
+                             .format(correct, total, results['score']))
+                evr = EvaluationResult(label='changing_dev', correct=correct,
+                                       total=total)
+                db.session.add(evr)
+                db.session.commit()
 
             rounds += 1
             (smallest_usage_count, train1, train2, dev, _
              ) = get_feedback_segments(config_basename)
             nl_queries_to_reevaluate.update({piece.nl for piece in train1})
-            if dev:
-                dev_set = make_dataset_from_feedback(dev, model)
     except:
         logging.error('Training failed. Deleting lock.')
         db.session.delete(lock)
