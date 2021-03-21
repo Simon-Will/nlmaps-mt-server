@@ -47,7 +47,7 @@ def translate():
     return jsonify(response)
 
 
-@current_app.route('translate_all_feedback', methods=['POST'])
+@current_app.route('/translate_all_feedback', methods=['POST'])
 def translate_all():
     data = request.json
     config_basename = data.get('model')
