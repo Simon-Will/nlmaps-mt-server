@@ -22,8 +22,19 @@ def save_feedback():
     else:
         config_basename = None
 
+    if 'split' in data:
+        data['split'] = data['split'][:50]
+    else:
+        data['split'] = 'train'
+
     fb = Feedback(**data)
     db.session.add(fb)
+    db.session.commit()
+
+    if fb.id % 5 == 0:
+        fb.split = 'test'
+    elif fb.id % 5 == 4:
+        fb.split = 'dev'
     db.session.commit()
 
     def train_in_thread():

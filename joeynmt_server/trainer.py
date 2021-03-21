@@ -1,11 +1,12 @@
-import itertools
 import logging
+import time
 
 from flask import current_app
 
 from joeynmt_server.app import db
 from joeynmt_server.joey_model import JoeyModel
-from joeynmt_server.models import Feedback, Lock, Parse, TrainUsage
+from joeynmt_server.models import (EvaluationResult, Feedback, Lock, Parse,
+                                   TrainUsage)
 from joeynmt_server.utils.batching import (make_dataset, merge_iterators,
                                            MyBucketIterator)
 from joeynmt_server.utils.helper import get_utc_now
@@ -99,29 +100,34 @@ def train(config_basename, smallest_usage_count, segment_1, segment_2):
     return model
 
 
-def sort_feedback(config_basename):
+def get_feedback_segments(config_basename):
     segment_1_threshold = 5
     feedback = Feedback.query.all()
-    segment_1 = []
-    segment_2 = []
+    train_segment_1 = []
+    train_segment_2 = []
+    dev = []
+    test = []
     smallest_usage_count = None
     for piece in feedback:
-        if piece.id % 5 == 0 or not piece.correct_lin:
-            # Use every fifth piece of feedback for testing.
+        if not piece.correct_lin:
             continue
 
-        usage_count = piece.get_usage_count_for_model(config_basename)
-        if smallest_usage_count is None:
-            smallest_usage_count = usage_count
-        else:
-            smallest_usage_count = min(smallest_usage_count, usage_count)
+        if piece.split == 'train':
+            usage_count = piece.get_usage_count_for_model(config_basename)
+            if smallest_usage_count is None:
+                smallest_usage_count = usage_count
+            else:
+                smallest_usage_count = min(smallest_usage_count, usage_count)
 
-        if usage_count < segment_1_threshold:
-            segment_1.append(piece)
-        else:
-            segment_2.append(piece)
-
-    return smallest_usage_count, segment_1, segment_2
+            if usage_count < segment_1_threshold:
+                train_segment_1.append(piece)
+            else:
+                train_segment_2.append(piece)
+        elif piece.split == 'dev':
+            dev.append(piece)
+        elif piece.split('test'):
+            test.append(piece)
+    return smallest_usage_count, train_segment_1, train_segment_2, dev, test
 
 
 def acquire_train_lock():
@@ -146,21 +152,38 @@ def train_n_rounds(config_basename, min_rounds=10):
         return
 
     model = None
+    dev_set = None
     try:
-        smallest_usage_count, segment_1, segment_2 = sort_feedback(
-            config_basename)
+        (smallest_usage_count, train1, train2, dev, _
+         ) = get_feedback_segments(config_basename)
+        nl_queries_to_reevaluate = {piece.nl for piece in train1}
+        if dev:
+            dev_set = make_dataset_from_feedback(dev, model)
         logging.info('Training with {} feedback pieces in segment 1'
                      ' and {} pieces in segment 2.'
-                     .format(len(segment_1), len(segment_2)))
+                     .format(len(train1), len(train2)))
         rounds = 0
-        while segment_1 or (min_rounds and rounds < min_rounds):
+        while train1 or (min_rounds and rounds < min_rounds):
             logging.debug('Smallest usage_count: {}. segment_1: {} '
-                          .format(smallest_usage_count, segment_1))
-            model = train(config_basename, smallest_usage_count, segment_1,
-                          segment_2)
+                          .format(smallest_usage_count, train1))
+            model = train(config_basename, smallest_usage_count, train1,
+                          train2)
+
+            if dev_set:
+                logging.debug('Validating on {} feedback pieces.'
+                              .format(len(dev_set)))
+                results = model.validate(dev_set)
+                correct = results['score']
+                total = len(dev_set)
+                EvaluationResult(label='changing_dev', correct=correct,
+                                 total=total)
+
             rounds += 1
-            smallest_usage_count, segment_1, segment_2 = sort_feedback(
-                config_basename)
+            (smallest_usage_count, train1, train2, dev, _
+             ) = get_feedback_segments(config_basename)
+            nl_queries_to_reevaluate.update({piece.nl for piece in train1})
+            if dev:
+                dev_set = make_dataset_from_feedback(dev, model)
     except:
         logging.error('Training failed. Deleting lock.')
         db.session.delete(lock)
@@ -169,13 +192,10 @@ def train_n_rounds(config_basename, min_rounds=10):
 
     if model:
         try:
-            # TODO: Split off reevaluation into a CPU thread.
-            nl_queries = [piece.nl for piece in segment_1]
-                          #for piece in itertools.chain(segment_1, segment_2)]
             logging.info('Reevaluating model {} on {} pieces of feedback.'
-                .format(config_basename, len(nl_queries)))
-            lin_queries = model.translate(nl_queries)
-            for nl, lin in zip(nl_queries, lin_queries):
+                .format(config_basename, len(nl_queries_to_reevaluate)))
+            lin_queries = model.translate(nl_queries_to_reevaluate)
+            for nl, lin in zip(nl_queries_to_reevaluate, lin_queries):
                 Parse.ensure(nl=nl, model=config_basename, lin=lin)
             logging.info('Finished reevaluating.')
         except:
@@ -190,3 +210,34 @@ def train_n_rounds(config_basename, min_rounds=10):
 
 def train_until_finished(config_basename):
     return train_n_rounds(config_basename, min_rounds=None)
+
+
+def validate(config_basename):
+    joey_dir = current_app.config.get('JOEY_DIR')
+    config_file = joey_dir / 'configs' / config_basename
+    use_cuda_train = current_app.config.get('USE_CUDA_TRAIN', False)
+    use_cuda = current_app.config.get('USE_CUDA_DEV', use_cuda_train)
+
+    lock = acquire_train_lock()
+    while not lock:
+        logging.debug('Did not acquire lock. Waiting for a minute.')
+        time.sleep(60)
+
+    try:
+        model = JoeyModel.from_config_file(config_file, joey_dir,
+                                           use_cuda=use_cuda)
+
+        dev_set = model.get_config_dataset('dev')
+        results = model.validate(dev_set)
+    except:
+        logging.error('Validating failed. Deleting lock.')
+        db.session.delete(lock)
+        db.session.commit()
+        raise
+
+    db.session.delete(lock)
+    db.session.commit()
+
+    correct = results['score']
+    total = len(dev_set)
+    EvaluationResult(label='changing_dev', correct=correct, total=total)
