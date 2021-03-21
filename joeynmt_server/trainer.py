@@ -124,7 +124,7 @@ def get_feedback_segments(config_basename):
                 train_segment_2.append(piece)
         elif piece.split == 'dev':
             dev.append(piece)
-        elif piece.split('test'):
+        elif piece.split == 'test':
             test.append(piece)
     return smallest_usage_count, train_segment_1, train_segment_2, dev, test
 
