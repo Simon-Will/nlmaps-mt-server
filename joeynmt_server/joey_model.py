@@ -40,7 +40,7 @@ def make_config_absolute(config, root):
 class JoeyModel:
 
     def __init__(self, config, model, train_manager, src_field, trg_field,
-                 test_args, joey_dir):
+                 test_args, joey_dir, ckpt_ctime):
         self.config = config
         self.model = model
         self.train_manager = train_manager
@@ -48,6 +48,7 @@ class JoeyModel:
         self.trg_field = trg_field
         self.test_args = test_args
         self.joey_dir = joey_dir
+        self.ckpt_ctime = ckpt_ctime
 
         self._train_dataset = None
 
@@ -103,6 +104,7 @@ class JoeyModel:
         model = build_model(config['model'], src_vocab=src_vocab,
                             trg_vocab=trg_vocab)
         ckpt = get_latest_checkpoint(model_dir)
+        ckpt_ctime = os.path.getctime(ckpt)
         config['training']['load_model'] = ckpt
         config['training']['reset_best_ckpt'] = False
         config['training']['reset_scheduler'] = True
@@ -114,7 +116,8 @@ class JoeyModel:
 
         return cls(config=config, model=model, train_manager=train_manager,
                    src_field=src_field, trg_field=trg_field,
-                   test_args=test_args, joey_dir=joey_dir)
+                   test_args=test_args, joey_dir=joey_dir,
+                   ckpt_ctime=ckpt_ctime)
 
     @property
     def train_dataset(self):
@@ -124,8 +127,10 @@ class JoeyModel:
 
     def is_still_latest(self):
         train_config = self.config['training']
-        latest_checkpoint = get_latest_checkpoint(train_config['model_dir'])
-        return latest_checkpoint == train_config['load_model']
+        latest_ckpt = get_latest_checkpoint(train_config['model_dir'])
+        latest_ckpt_ctime = os.path.getctime(latest_ckpt)
+        return (latest_ckpt == train_config['load_model']
+                and latest_ckpt_ctime == self.ckpt_ctime)
 
     def get_batch_size_fn(self):
         if self.config['training'].get('batch_type') == "token":
