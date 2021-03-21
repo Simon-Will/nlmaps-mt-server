@@ -2,7 +2,7 @@ from flask import current_app, jsonify, request
 from joeynmt.helpers import get_latest_checkpoint
 
 from joeynmt_server.joey_model import JoeyModel
-from joeynmt_server.models import Parse
+from joeynmt_server.models import Feedback, Parse
 
 MODELS = {}
 
@@ -38,6 +38,25 @@ def translate():
         lin = model.translate_single(nl)
         Parse.ensure(nl=nl, model=config_basename, lin=lin)
     elif isinstance(nl, list):
+        lin = model.translate(nl)
+        for single_nl, single_lin in zip(nl, lin):
+            Parse.ensure(nl=single_nl, model=config_basename,
+                         lin=single_lin)
+
+    response = {'lin': lin}
+    return jsonify(response)
+
+
+@current_app.route('translate_all_feedback', methods=['POST'])
+def translate_all():
+    data = request.json
+    config_basename = data.get('model')
+
+    model = get_model(config_basename)
+
+    nl = [fb.nl for fb in Feedback.query.all()]
+
+    if isinstance(nl, list):
         lin = model.translate(nl)
         for single_nl, single_lin in zip(nl, lin):
             Parse.ensure(nl=single_nl, model=config_basename,

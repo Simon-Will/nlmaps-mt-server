@@ -153,7 +153,7 @@ class JoeyModel:
     def get_config_dataset(self, name):
         return self._load_train_dataset(self.config['data'][name])
 
-    def _validate_on_data(self, dataset, **kwargs):
+    def validate(self, dataset, **kwargs):
         valid_kwargs = {k: v for k, v in self.test_args.items()
                         if k not in ['decoding_description', 'tokenizer_info',
                                      'tag_dict_file']}
@@ -180,7 +180,7 @@ class JoeyModel:
 
     def translate(self, sentences, **kwargs):
         dataset = make_dataset(sentences, self.src_field)
-        results = self._validate_on_data(dataset, **kwargs)
+        results = self.validate(dataset, **kwargs)
         return results['hypotheses']
 
     def translate_single(self, sentence):
@@ -205,7 +205,7 @@ class JoeyModel:
             dev_set = self.get_config_dataset('dev')
 
         if dev_set:
-            dev_results = self._validate_on_data(dev_set)
+            dev_results = self.validate(dev_set)
             logging.info('Validation result: {}'.format(dev_results['score']))
 
         for i, batch in enumerate(batches):
@@ -225,11 +225,10 @@ class JoeyModel:
                 trainer.stats.steps += 1
             if batch_callback:
                 batch_callback(batch)
-        logging.info('Finished training after {} batches'
-                     .format(i + 1))
+        logging.info('Finished training after {} batches'.format(i + 1))
 
         trainer._save_checkpoint()
 
         if dev_set:
-            dev_results = self._validate_on_data(dev_set)
+            dev_results = self.validate(dev_set)
             logging.info('Validation result: {}'.format(dev_results['score']))

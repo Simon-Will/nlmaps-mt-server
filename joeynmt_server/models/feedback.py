@@ -23,6 +23,8 @@ class Feedback(BaseModel):
         nullable=True,
     )
 
+    split = db.Column(db.Unicode(50), nullable=False, server_default='train')
+
     train_usages = db.relationship('TrainUsage', back_populates='feedback',
                                    cascade='all, delete-orphan')
 
