@@ -168,10 +168,10 @@ def train_n_rounds(config_basename, min_rounds=10):
             if dev:
                 dev_set = make_dataset_from_feedback(dev, model)
                 logging.info('Validating on {} feedback pieces.'
-                              .format(len(dev_set)))
+                             .format(len(dev_set)))
                 results = model.validate(dev_set)
-                correct = results['score']
                 total = len(dev_set)
+                correct = results['score'] * total
                 logging.info('Got validation result: {}/{} = {}'
                              .format(correct, total, results['score']))
                 evr = EvaluationResult(label='changing_dev', correct=correct,
