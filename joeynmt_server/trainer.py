@@ -170,10 +170,11 @@ def train_n_rounds(config_basename, min_rounds=10):
                 logging.info('Validating on {} feedback pieces.'
                              .format(len(dev_set)))
                 results = model.validate(dev_set)
+                accuracy = results['score'] / 100
                 total = len(dev_set)
-                correct = results['score'] * total
+                correct = round(accuracy * total)
                 logging.info('Got validation result: {}/{} = {}.'
-                             .format(correct, total, results['score']))
+                             .format(correct, total, accuracy))
                 evr = EvaluationResult(label='running_dev', correct=correct,
                                        total=total)
                 db.session.add(evr)
@@ -232,10 +233,11 @@ def validate(config_basename):
 
         logging.info('Validating on dev set.')
         results = model.validate(dev_set)
+        accuracy = results['score'] / 100
         total = len(dev_set)
-        correct = results['score'] * total
+        correct = round(accuracy * total)
         logging.info('Got validation result: {}/{} = {}.'
-                     .format(correct, total, results['score']))
+                     .format(correct, total, accuracy))
         evr = EvaluationResult(label='file_dev', correct=correct,
                                total=total)
         db.session.add(evr)
@@ -248,7 +250,3 @@ def validate(config_basename):
 
     db.session.delete(lock)
     db.session.commit()
-
-    correct = results['score']
-    total = len(dev_set)
-    EvaluationResult(label='changing_dev', correct=correct, total=total)

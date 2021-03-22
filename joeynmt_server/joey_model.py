@@ -162,10 +162,10 @@ class JoeyModel:
         valid_kwargs = {k: v for k, v in self.test_args.items()
                         if k not in ['decoding_description', 'tokenizer_info',
                                      'tag_dict_file']}
-        valid_kwargs['eval_metric'] = ''
         valid_kwargs['compute_loss'] = False
         valid_kwargs['data'] = dataset
         valid_kwargs.update(kwargs)
+        valid_kwargs['eval_metric'] = 'sequence_accuracy'
 
         (score, loss, ppl, sources, sources_raw, references, hypotheses,
          hypotheses_raw, valid_attention_scores) = validate_on_data(
