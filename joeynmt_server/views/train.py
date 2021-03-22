@@ -7,7 +7,7 @@ from flask import current_app, jsonify, request
 
 from joeynmt_server.app import create_app
 from joeynmt_server.models import Lock
-from joeynmt_server.trainer import train_n_rounds, validate
+from joeynmt_server.trainer import train_n_rounds, validate as validate_on_data
 from joeynmt_server.utils.helper import get_utc_now
 
 
@@ -60,7 +60,7 @@ def validate():
         app = create_app()
         with app.app_context():
             try:
-                validate(config_basename)
+                validate_on_data(config_basename)
             except:
                 logging.error('Training failed.')
                 logging.error(traceback.format_exc())
