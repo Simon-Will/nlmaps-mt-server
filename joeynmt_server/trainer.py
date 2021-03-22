@@ -172,12 +172,15 @@ def train_n_rounds(config_basename, min_rounds=10):
                 results = model.validate(dev_set)
                 total = len(dev_set)
                 correct = results['score'] * total
-                logging.info('Got validation result: {}/{} = {}'
+                logging.info('Got validation result: {}/{} = {}.'
                              .format(correct, total, results['score']))
-                evr = EvaluationResult(label='changing_dev', correct=correct,
+                evr = EvaluationResult(label='running_dev', correct=correct,
                                        total=total)
                 db.session.add(evr)
                 db.session.commit()
+                logging.info('Saving parses from running dev set.')
+                for nl, lin in zip(results['sources'], results['hypotheses']):
+                    Parse.ensure(nl=nl, model=config_basename, lin=lin)
 
             rounds += 1
             (smallest_usage_count, train1, train2, dev, _
@@ -225,9 +228,18 @@ def validate(config_basename):
     try:
         model = JoeyModel.from_config_file(config_file, joey_dir,
                                            use_cuda=use_cuda)
-
         dev_set = model.get_config_dataset('dev')
+
+        logging.info('Validating on dev set.')
         results = model.validate(dev_set)
+        total = len(dev_set)
+        correct = results['score'] * total
+        logging.info('Got validation result: {}/{} = {}.'
+                     .format(correct, total, results['score']))
+        evr = EvaluationResult(label='file_dev', correct=correct,
+                               total=total)
+        db.session.add(evr)
+        db.session.commit()
     except:
         logging.error('Validating failed. Deleting lock.')
         db.session.delete(lock)
