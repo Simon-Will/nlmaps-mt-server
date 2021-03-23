@@ -24,18 +24,21 @@ def save_feedback():
 
     if 'split' in data:
         data['split'] = data['split'][:50]
+        split_was_explicitly_set = True
     else:
         data['split'] = 'train'
+        split_was_explicitly_set = False
 
     fb = Feedback(**data)
     db.session.add(fb)
     db.session.commit()
 
-    if fb.id % 5 == 0:
-        fb.split = 'test'
-    elif fb.id % 5 == 4:
-        fb.split = 'dev'
-    db.session.commit()
+    if not split_was_explicitly_set:
+        if fb.id % 5 == 0:
+            fb.split = 'test'
+        elif fb.id % 5 == 4:
+            fb.split = 'dev'
+        db.session.commit()
 
     def train_in_thread():
         app = create_app()
@@ -49,7 +52,7 @@ def save_feedback():
     response = fb.json_ready_dict()
 
     if (current_app.config.get('TRAIN_AFTER_FEEDBACK') and config_basename
-            and fb.correct_lin):
+            and fb.correct_lin and fb.split == 'train'):
         thread = threading.Thread(target=train_in_thread)
         thread.start()
         time.sleep(0.1)

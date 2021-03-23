@@ -156,7 +156,9 @@ class JoeyModel:
         return dataset
 
     def get_config_dataset(self, name):
-        return self._load_train_dataset(self.config['data'][name])
+        if name in self.config['data']:
+            return self._load_train_dataset(self.config['data'][name])
+        return None
 
     def validate(self, dataset, **kwargs):
         valid_kwargs = {k: v for k, v in self.test_args.items()

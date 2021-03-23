@@ -215,7 +215,7 @@ def train_until_finished(config_basename):
     return train_n_rounds(config_basename, min_rounds=None)
 
 
-def validate(config_basename):
+def validate(config_basename, dataset_name='dev'):
     joey_dir = current_app.config.get('JOEY_DIR')
     config_file = joey_dir / 'configs' / config_basename
     use_cuda_train = current_app.config.get('USE_CUDA_TRAIN', False)
@@ -229,7 +229,11 @@ def validate(config_basename):
     try:
         model = JoeyModel.from_config_file(config_file, joey_dir,
                                            use_cuda=use_cuda)
-        dev_set = model.get_config_dataset('dev')
+        dev_set = model.get_config_dataset(dataset_name)
+        if not dev_set:
+            msg = 'No such dataset: {}'.format(dataset_name)
+            logging.error(msg)
+            raise ValueError(msg)
 
         logging.info('Validating on dev set.')
         results = model.validate(dev_set)

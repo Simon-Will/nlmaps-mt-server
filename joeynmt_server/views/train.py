@@ -56,11 +56,13 @@ def validate():
     data = request.json
     config_basename = data.get('model')
 
+    dataset = data.get('dataset', 'dev')
+
     def validate_in_thread():
         app = create_app()
         with app.app_context():
             try:
-                validate_on_data(config_basename)
+                validate_on_data(config_basename, dataset)
             except:
                 logging.error('Training failed.')
                 logging.error(traceback.format_exc())
