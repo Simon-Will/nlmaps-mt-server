@@ -98,10 +98,10 @@ class NLMapsMT:
 
 
 def main(dataset_dir, model, wait_time=3, validation_freq=10, dev2=False,
-         nlmaps_mt_base_url=NLMAPS_MT_BASE_URL, user_id=1):
+         base_url=NLMAPS_MT_BASE_URL, user_id=1):
     data = load_data(dataset_dir)
 
-    nlmaps_mt = NLMapsMT(nlmaps_mt_base_url, model=model, user_id=user_id)
+    nlmaps_mt = NLMapsMT(base_url, model=model, user_id=user_id)
     for train_idx, (train, dev, test) in enumerate(
             zip_longest(data['train'], data['dev'], data['test'])):
         if train:
