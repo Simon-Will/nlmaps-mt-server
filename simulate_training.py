@@ -139,7 +139,7 @@ def parse_args():
     parser.add_argument('--dev2', default=False, action='store_true',
                         help='At validation time, additionally use dev2'
                         ' from model config to validate on.')
-    parser.add_argument('--nlmaps-mt-base_url', default=NLMAPS_MT_BASE_URL,
+    parser.add_argument('--base-url', default=NLMAPS_MT_BASE_URL,
                         help='Base_Url of the NLMaps MT server.')
     parser.add_argument('--user-id', type=int, default=1,
                         help='User ID to use with the NLMaps MT server.')
