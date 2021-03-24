@@ -235,14 +235,14 @@ def validate(config_basename, dataset_name='dev'):
             logging.error(msg)
             raise ValueError(msg)
 
-        logging.info('Validating on dev set.')
+        logging.info('Validating on dataset {}.'.format(dataset_name)
         results = model.validate(dev_set)
         accuracy = results['score'] / 100
         total = len(dev_set)
         correct = round(accuracy * total)
         logging.info('Got validation result: {}/{} = {}.'
                      .format(correct, total, accuracy))
-        evr = EvaluationResult(label='file_dev', correct=correct,
+        evr = EvaluationResult(label=dataset_name, correct=correct,
                                total=total)
         db.session.add(evr)
         db.session.commit()

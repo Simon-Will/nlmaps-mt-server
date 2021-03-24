@@ -18,7 +18,7 @@ SQLALCHEMY_DATABASE_URI = 'sqlite:///{}'.format(
 with open(ASSETS_DIR / 'secret_key.txt') as f:
     SECRET_KEY = f.read().strip()
 
-TRAIN_AFTER_FEEDBACK = False
+TRAIN_AFTER_FEEDBACK = True
 
 logging.config.dictConfig({
     'version': 1,
@@ -39,7 +39,7 @@ logging.config.dictConfig({
         },
     },
     'root': {
-        'level': 'DEBUG',
+        'level': 'INFO',
         'handlers': ['stdout', 'logfile']
     }
 })

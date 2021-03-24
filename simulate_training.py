@@ -13,10 +13,15 @@ Instance = namedtuple('Instance', ('nl', 'lin'))
 
 NLMAPS_MT_BASE_URL = 'http://localhost:5050'
 
+logging.basicConfig(
+    format='[%(asctime)s] %(levelname)s in %(module)s: %(message)s',
+    level=logging.INFO
+)
+
 
 def find_and_read_file(dataset_dir, basenames, split, suffix):
     end = '{}.{}'.format(split, suffix)
-    suitable_basenames = [name.endswith(end) for name in basenames]
+    suitable_basenames = [name for name in basenames if name.endswith(end)]
     if len(suitable_basenames) == 0:
         logging.warning('Found no file matching *{}'.format(end))
         return []
@@ -63,7 +68,9 @@ class NLMapsMT:
 
     def _make_url(self, path):
         parsed = urllib.parse.ParseResult(
-            scheme=self.scheme, netloc=self.netloc, path=path)
+            scheme=self.scheme, netloc=self.netloc, path=path,
+            params=None, query=None, fragment=None
+        )
         return parsed.geturl()
 
     def save_feedback(self, instance: Instance, split):
