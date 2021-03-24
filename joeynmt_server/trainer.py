@@ -235,7 +235,7 @@ def validate(config_basename, dataset_name='dev'):
             logging.error(msg)
             raise ValueError(msg)
 
-        logging.info('Validating on dataset {}.'.format(dataset_name)
+        logging.info('Validating on dataset {}.'.format(dataset_name))
         results = model.validate(dev_set)
         accuracy = results['score'] / 100
         total = len(dev_set)
