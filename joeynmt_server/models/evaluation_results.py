@@ -13,3 +13,9 @@ class EvaluationResult(BaseModel):
     @property
     def accuracy(self):
         return self.correct / self.total
+
+
+    def json_ready_dict(self) -> dict:
+        d = super().json_ready_dict()
+        d['accuracy'] = self.accuracy
+        return d
