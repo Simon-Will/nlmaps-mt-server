@@ -39,7 +39,7 @@ def load_data(dataset_dir):
     data = {'train': [], 'dev': [], 'test': []}
     for split in data:
         en = find_and_read_file(dataset_dir, basenames, split, 'en')
-        lin = find_and_read_file(dataset_dir, basenames, split, 'en')
+        lin = find_and_read_file(dataset_dir, basenames, split, 'lin')
 
         if len(en) != len(lin):
             if not en:
@@ -85,7 +85,7 @@ class NLMapsMT:
 
     def is_training(self):
         url = self._make_url('/train_status')
-        logging.info('GET to {}'.format(url))
+        logging.debug('GET to {}'.format(url))
         resp = requests.get(url)
         if resp.status_code != 200:
             logging.error('Response status code: {}'.format(resp.status_code))
@@ -105,7 +105,7 @@ class NLMapsMT:
 
 
 def main(dataset_dir, model, wait_time=3, validation_freq=10, dev2=False,
-         base_url=NLMAPS_MT_BASE_URL, user_id=1):
+         test_as_dev=False, base_url=NLMAPS_MT_BASE_URL, user_id=1):
     data = load_data(dataset_dir)
 
     nlmaps_mt = NLMapsMT(base_url, model=model, user_id=user_id)
@@ -129,7 +129,8 @@ def main(dataset_dir, model, wait_time=3, validation_freq=10, dev2=False,
         if dev:
             nlmaps_mt.save_feedback(dev, 'dev')
         if test:
-            nlmaps_mt.save_feedback(test, 'test')
+            split = 'dev' if test_as_dev else 'test'
+            nlmaps_mt.save_feedback(test, split)
 
 
 def parse_args():
@@ -146,6 +147,7 @@ def parse_args():
     parser.add_argument('--dev2', default=False, action='store_true',
                         help='At validation time, additionally use dev2'
                         ' from model config to validate on.')
+    parser.add_argument('--test-as-dev', default=False, action='store_true')
     parser.add_argument('--base-url', default=NLMAPS_MT_BASE_URL,
                         help='Base_Url of the NLMaps MT server.')
     parser.add_argument('--user-id', type=int, default=1,
