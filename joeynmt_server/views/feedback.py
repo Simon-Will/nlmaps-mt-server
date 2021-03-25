@@ -61,6 +61,17 @@ def save_feedback():
     return jsonify(response)
 
 
+@current_app.route('/list_feedback', methods=['POST'])
+def list_feedback():
+    filters = request.json
+    feedback = Feedback.query
+    if 'user_id' in filters:
+        feedback = feedback.filter(Feedback.user_id == filters['user_id'])
+
+    feedback = [fb.json_ready_dict() for fb in feedback]
+    return jsonify(feedback)
+
+
 @current_app.route('/query_feedback', methods=['POST'])
 def query_feedback():
     filters = request.json
