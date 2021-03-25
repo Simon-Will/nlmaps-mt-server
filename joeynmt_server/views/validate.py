@@ -35,7 +35,7 @@ def validate():
     return jsonify(response), status
 
 
-@current_app.route('/validations', methods='GET')
+@current_app.route('/validations', methods=['GET'])
 def validations():
     label = request.args.get('label')
 
