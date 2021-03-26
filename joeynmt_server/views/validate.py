@@ -41,11 +41,13 @@ def validate():
 @current_app.route('/validations', methods=['GET'])
 def validations():
     label = request.args.get('label')
+    model = request.args.get('model')
 
+    query = EvaluationResult.query
     if label:
-        results = EvaluationResult.query.filter_by(label=label).all()
-    else:
-        results = EvaluationResult.query.all()
+        query = query.filter_by(label=label)
+    if model:
+        query = query.filter_by(model=model)
 
-    results = [result.json_ready_dict() for result in results]
+    results = [result.json_ready_dict() for result in query]
     return jsonify(results)
