@@ -175,8 +175,10 @@ def train_n_rounds(config_basename, min_rounds=10):
                 correct = round(accuracy * total)
                 logging.info('Got validation result: {}/{} = {}.'
                              .format(correct, total, accuracy))
-                evr = EvaluationResult(label='running_dev', correct=correct,
-                                       total=total)
+                evr = EvaluationResult(
+                    label='running_dev', model=config_basename,
+                    correct=correct, total=total
+                )
                 db.session.add(evr)
                 db.session.commit()
                 logging.info('Saving parses from running dev set.')
@@ -242,8 +244,8 @@ def validate(config_basename, dataset_name='dev'):
         correct = round(accuracy * total)
         logging.info('Got validation result: {}/{} = {}.'
                      .format(correct, total, accuracy))
-        evr = EvaluationResult(label=dataset_name, correct=correct,
-                               total=total)
+        evr = EvaluationResult(label=dataset_name, model=config_basename,
+                               correct=correct, total=total)
         db.session.add(evr)
         db.session.commit()
     except:

@@ -7,6 +7,7 @@ class EvaluationResult(BaseModel):
     __tablename__ = 'evaluation_results'
 
     label = db.Column(db.Unicode(50), nullable=False)
+    model = db.Column(db.Unicode(500), nullable=False)
     correct = db.Column(db.Integer, nullable=False)
     total = db.Column(db.Integer, nullable=False)
 
