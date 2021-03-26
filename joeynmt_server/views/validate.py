@@ -13,7 +13,10 @@ from joeynmt_server.trainer import validate as validate_on_data
 @current_app.route('/validate', methods=['POST'])
 def validate():
     data = request.json
-    config_basename = data.get('model')
+    if 'model' in data:
+        config_basename = data['model']
+    else:
+        return jsonify({'error': 'No model specified.'}), 400
 
     dataset = data.get('dataset', 'dev')
 
