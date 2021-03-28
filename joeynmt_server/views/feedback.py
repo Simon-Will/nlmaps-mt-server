@@ -5,6 +5,7 @@ import traceback
 
 from flask import current_app, jsonify, request
 from sqlalchemy import or_
+from sqlalchemy.orm import aliased
 
 from joeynmt_server.app import create_app, db
 from joeynmt_server.models import Feedback, Parse
@@ -75,18 +76,26 @@ def list_feedback():
 @current_app.route('/query_feedback', methods=['POST'])
 def query_feedback():
     filters = request.json
-    query = db.session.query(Feedback, Parse).outerjoin(
-        Parse, Feedback.nl == Parse.nl)
+    fb_query = Feedback.query
     if 'user_id' in filters:
-        query = query.filter(Feedback.user_id == filters['user_id'])
+        fb_query = fb_query.filter_by(user_id=filters['user_id'])
+    if 'limit' in filters or 'offset' in filters:
+        fb_query = fb_query.order_by(Feedback.id)
+        if 'limit' in filters:
+            fb_query = fb_query.limit(filters['limit'])
+        if 'offset' in filters:
+            fb_query = fb_query.offset(filters['offset'])
+
+    limited_feedback = aliased(Feedback, fb_query.subquery())
+
     if 'model' in filters:
-        by_id = {}
-        for piece, parse in query:
-            if parse and parse.model == filters['model']:
-                by_id[piece.id] = (piece, parse)
-            elif piece.id not in by_id:
-                by_id[piece.id] = (piece, None)
-        query = by_id.values()
+        parses_for_model = Parse.query.filter_by(model=filters['model'])
+        parses = aliased(Parse, parses_for_model.subquery())
+    else:
+        parses = Parse
+
+    query = db.session.query(limited_feedback, parses).outerjoin(
+        parses, limited_feedback.nl == parses.nl)
 
     joined_feedback = []
     for piece, parse in query:
