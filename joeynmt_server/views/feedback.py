@@ -79,6 +79,11 @@ def query_feedback():
     fb_query = Feedback.query
     if 'user_id' in filters:
         fb_query = fb_query.filter_by(user_id=filters['user_id'])
+        total_count = Feedback.query.filter_by(
+            user_id=filters['user_id']).count()
+    else:
+        total_count = Feedback.query.count()
+
     if 'limit' in filters or 'offset' in filters:
         fb_query = fb_query.order_by(Feedback.id)
         if 'limit' in filters:
@@ -109,7 +114,12 @@ def query_feedback():
         }
         joined_feedback.append(joined)
 
-    return jsonify(joined_feedback)
+    data = {
+        'total_count': total_count,
+        'feedback': joined_feedback
+    }
+
+    return jsonify(data)
 
 
 @current_app.route('/edit_feedback', methods=['POST'])
