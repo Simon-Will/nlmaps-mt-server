@@ -38,6 +38,6 @@ class BaseModel(db.Model):
         d = {}
         for key, val in self.sorted_attributes():
             if isinstance(val, dt.datetime):
-                val = val.isoformat()
+                val = val.isoformat(timespec='seconds')
             d[key] = val
         return d
