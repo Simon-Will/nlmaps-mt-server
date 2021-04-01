@@ -107,7 +107,8 @@ def query_feedback():
         model = parse.model if parse else None
         model_lin = parse.lin if parse else None
         joined = {
-            'id': piece.id, 'nl': piece.nl, 'correct_lin': piece.correct_lin,
+            'id': piece.id, 'created': piece.created.isoformat(),
+            'nl': piece.nl, 'correct_lin': piece.correct_lin,
             'original_model': piece.model, 'original_lin': piece.system_lin,
             'parent_id': piece.parent_id,
             'model': model, 'model_lin': model_lin
