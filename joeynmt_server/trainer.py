@@ -32,7 +32,7 @@ def train(config_basename, smallest_usage_count, segment_1, segment_2):
     segment_1_threshold = 5
     segment_1_batch_size = 5
     segment_2_batch_size = 5
-    segment_3_batch_size = 10
+    segment_3_batch_size = 15
 
     joey_dir = current_app.config.get('JOEY_DIR')
     config_file = joey_dir / 'configs' / config_basename
