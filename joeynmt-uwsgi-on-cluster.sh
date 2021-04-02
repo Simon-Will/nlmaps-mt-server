@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=joeynmt-server
-#SBATCH --partition=compute
-#SBATCH --nodelist=node40
+#SBATCH --partition=students
+#SBATCH --gres=gpu:1
 #SBATCH --nodes=1
 #SBATCH --mem=5GB
-#SBATCH --time=1-00:00:00
+#SBATCH --time=3-00:00:00
 
 PORT=5050
 CLUSTER_MAIN_NODE=node00
