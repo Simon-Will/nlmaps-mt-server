@@ -35,9 +35,8 @@ def save_feedback():
     db.session.commit()
 
     if not split_was_explicitly_set:
-        if fb.id % 5 == 0:
-            fb.split = 'test'
-        elif fb.id % 5 == 4:
+        # Out of five pieces of feedback, number 4 and 5 are saved as dev
+        if fb.id % 5 in [0, 4]:
             fb.split = 'dev'
         db.session.commit()
 
