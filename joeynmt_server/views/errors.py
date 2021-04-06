@@ -1,7 +1,6 @@
 import traceback
 
 from flask import current_app, jsonify, render_template, request
-from flask_login import current_user
 
 
 @current_app.errorhandler(403)

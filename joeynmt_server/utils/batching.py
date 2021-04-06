@@ -1,6 +1,8 @@
 import itertools
+import random
 
 from torchtext.data import Batch, BucketIterator, Dataset, Example, Field
+from torchtext.data.utils import RandomShuffler
 
 
 ID_FIELD = Field(sequential=False, use_vocab=False, batch_first=True)
@@ -21,11 +23,20 @@ def make_dataset(src, src_field, trg_field=None, trg=None, ids=None):
     return dataset
 
 
+class MyRandomShuffler(RandomShuffler):
+
+    def __call__(self, data):
+        return random.sample(data, len(data))
+
+
 class MyBucketIterator(BucketIterator):
 
-    def __init__(self, *args, max_epochs=None, **kwargs):
+    def __init__(self, *args, max_epochs=None, deterministic=False, **kwargs):
         self.max_epochs = max_epochs
         super().__init__(*args, **kwargs)
+
+        if not deterministic:
+            self.random_shuffler = MyRandomShuffler()
 
     def iter_batches_as_lists(self):
         """Mostly a copy of BucketIterator.__iter__, but yielding the

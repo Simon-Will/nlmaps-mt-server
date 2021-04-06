@@ -109,7 +109,7 @@ def query_feedback():
             'id': piece.id, 'created': piece.created.isoformat(timespec='seconds'),
             'nl': piece.nl, 'correct_lin': piece.correct_lin,
             'original_model': piece.model, 'original_lin': piece.system_lin,
-            'parent_id': piece.parent_id,
+            'parent_id': piece.parent_id, 'split': piece.split,
             'model': model, 'model_lin': model_lin
         }
         joined_feedback.append(joined)
@@ -130,7 +130,7 @@ def edit_feedback():
     elif not isinstance(data['id'], int):
         return jsonify({'error': 'Feedback id is not an int'}), 400
     elif not {'editor_id', 'id', 'nl', 'system_lin', 'correct_lin',
-              'model'}.issuperset(data.keys()):
+              'model', 'split'}.issuperset(data.keys()):
         return jsonify({'error': 'Illegal keys given'}), 400
 
     id = data.pop('id')
