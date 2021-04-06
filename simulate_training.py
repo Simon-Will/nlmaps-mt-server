@@ -112,6 +112,17 @@ def main(dataset_dir, model, wait_time=3, validation_freq=10, dev2=False,
     data = load_data(dataset_dir)
     nlmaps_mt = NLMapsMT(base_url, model=model, user_id=user_id)
 
+    if validation_freq:
+        while nlmaps_mt.is_training():
+            time.sleep(1)
+        nlmaps_mt.validate('dev')
+        while nlmaps_mt.is_training():
+            time.sleep(1)
+        if dev2:
+            nlmaps_mt.validate('dev2')
+            while nlmaps_mt.is_training():
+                time.sleep(1)
+
     for train_idx, (train, dev, test) in enumerate(
             zip_longest(data['train'], data['dev'], data['test']), start=1):
         if train:
