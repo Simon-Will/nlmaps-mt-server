@@ -74,6 +74,9 @@ def train(config_basename, smallest_usage_count, segment_1, segment_2):
     train_iterator = merge_iterators(*iterators)
 
     def increment_train_usages(batch):
+        if not hasattr(batch, 'id'):
+            return
+
         ids = {int(id_) for id_ in batch.id if id_ >= 0}
         existing_usages = {
             usage.feedback_id: usage
