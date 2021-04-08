@@ -76,12 +76,19 @@ def list_feedback():
 def query_feedback():
     filters = request.json
     fb_query = Feedback.query
+    count_query = Feedback.query
+
     if 'user_id' in filters:
         fb_query = fb_query.filter_by(user_id=filters['user_id'])
-        total_count = Feedback.query.filter_by(
-            user_id=filters['user_id']).count()
-    else:
-        total_count = Feedback.query.count()
+        count_query = count_query.filter_by(
+            user_id=filters['user_id'])
+
+    if 'nl_part' in filters:
+        like_arg = '%{}%'.format(filters['nl_part'])
+        fb_query = fb_query.filter(Feedback.nl.like(like_arg))
+        count_query = count_query.filter(Feedback.nl.like(like_arg))
+
+    total_count = count_query.count()
 
     if 'limit' in filters or 'offset' in filters:
         fb_query = fb_query.order_by(Feedback.id)
