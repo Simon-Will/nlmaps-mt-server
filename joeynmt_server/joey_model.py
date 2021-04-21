@@ -125,6 +125,12 @@ class JoeyModel:
             self._train_dataset = self._load_train_dataset()
         return self._train_dataset
 
+    @property
+    def steps(self):
+        if self.train_manager:
+            return self.train_manager.stats.steps
+        return None
+
     def is_still_latest(self):
         train_config = self.config['training']
         latest_ckpt = get_latest_checkpoint(train_config['model_dir'])

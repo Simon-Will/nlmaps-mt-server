@@ -168,7 +168,7 @@ def train_n_rounds(config_basename, min_rounds=10):
             model = train(config_basename, smallest_usage_count, train1,
                           train2)
 
-            if dev:
+            if dev and current_app.config.get('RUNNING_VALIDATION', True):
                 dev_set = make_dataset_from_feedback(dev, model)
                 logging.info('Validating on {} feedback pieces.'
                              .format(len(dev_set)))
@@ -179,8 +179,8 @@ def train_n_rounds(config_basename, min_rounds=10):
                 logging.info('Got validation result: {}/{} = {}.'
                              .format(correct, total, accuracy))
                 evr = EvaluationResult(
-                    label='running_dev', model=config_basename,
-                    correct=correct, total=total
+                    label='running_dev', steps=model.steps,
+                    model=config_basename, correct=correct, total=total
                 )
                 db.session.add(evr)
                 db.session.commit()
@@ -247,8 +247,9 @@ def validate(config_basename, dataset_name='dev'):
         correct = round(accuracy * total)
         logging.info('Got validation result: {}/{} = {}.'
                      .format(correct, total, accuracy))
-        evr = EvaluationResult(label=dataset_name, model=config_basename,
-                               correct=correct, total=total)
+        evr = EvaluationResult(label=dataset_name, steps=model.steps,
+                               model=config_basename, correct=correct,
+                               total=total)
         db.session.add(evr)
         db.session.commit()
     except:
